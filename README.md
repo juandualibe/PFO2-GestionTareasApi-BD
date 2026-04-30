@@ -65,14 +65,14 @@ python cliente.py
 Al ejecutar `cliente.py` se presenta un menú interactivo:
  
 ```
-╔══════════════════════════════╗
-║   Sistema de Gestión de Tareas  ║
-╠══════════════════════════════╣
-║  1. Registrar usuario           ║
-║  2. Iniciar sesión              ║
-║  3. Ver página de bienvenida    ║
-║  4. Salir                       ║
-╚══════════════════════════════╝
+
+   Sistema de Gestión de Tareas  
+
+  1. Registrar usuario          
+  2. Iniciar sesión             
+  3. Ver página de bienvenida   
+  4. Salir                      
+
 ```
  
 ---
