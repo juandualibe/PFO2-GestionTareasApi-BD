@@ -2,9 +2,10 @@ from flask import Flask, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 
-
+# Iniciamos nuestra aplicación Flask
 app = Flask(__name__)
 
+# Definimos el nombre del archivo de la base de datos (nuestro recurso centralizado)
 DB_PATH = "tareas.db"
 
 # ─────────────────────────────────────────────
@@ -12,8 +13,10 @@ DB_PATH = "tareas.db"
 # ─────────────────────────────────────────────
 
 def init_db():
+    """ Crea la tabla de usuarios si no existe al arrancar el servidor """
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
+        # Definimos la estructura: ID autoincremental, nombre único y la clave hasheada
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,8 +32,10 @@ def init_db():
 
 @app.route("/registro", methods=["POST"])
 def registro():
-    datos = request.get_json()
+    """ Maneja la creación de nuevos usuarios """
+    datos = request.get_json() # Recibimos los datos que envía el cliente
 
+    # Validamos que no falte ningún campo necesario
     if not datos or "usuario" not in datos or "contraseña" not in datos:
         return jsonify({"error": "Faltan campos: 'usuario' y 'contraseña'"}), 400
 
@@ -40,10 +45,12 @@ def registro():
     if not usuario or not password:
         return jsonify({"error": "Los campos no pueden estar vacíos"}), 400
 
+    # SEGURIDAD: Convertimos la clave en un hash antes de guardarla (Aislamiento de datos)
     password_hash = generate_password_hash(password)
 
     try:
         with sqlite3.connect(DB_PATH) as conn:
+            # Guardamos el nuevo usuario en nuestro recurso central (SQLite)
             conn.execute(
                 "INSERT INTO usuarios (usuario, password) VALUES (?, ?)",
                 (usuario, password_hash)
@@ -52,6 +59,7 @@ def registro():
         return jsonify({"mensaje": f"Usuario '{usuario}' registrado exitosamente"}), 201
 
     except sqlite3.IntegrityError:
+        # Si el usuario ya existe, devolvemos un error de conflicto
         return jsonify({"error": f"El usuario '{usuario}' ya existe"}), 409
 
 # ─────────────────────────────────────────────
@@ -60,19 +68,20 @@ def registro():
 
 @app.route("/login", methods=["POST"])
 def login():
+    """ Verifica las credenciales para permitir el acceso """
     datos = request.get_json()
 
-    if not datos or "usuario" not in datos or "contraseña" not in datos:
-        return jsonify({"error": "Faltan campos: 'usuario' y 'contraseña'"}), 400
-
+    # Capturamos lo que el usuario escribió en el cliente
     usuario  = datos["usuario"].strip()
     password = datos["contraseña"].strip()
 
+    # Buscamos al usuario en la base de datos
     with sqlite3.connect(DB_PATH) as conn:
         row = conn.execute(
             "SELECT password FROM usuarios WHERE usuario = ?", (usuario,)
         ).fetchone()
 
+    # Verificamos: ¿Existe el usuario? y ¿Coincide el hash de la clave?
     if row is None or not check_password_hash(row[0], password):
         return jsonify({"error": "Credenciales incorrectas"}), 401
 
@@ -84,6 +93,7 @@ def login():
 
 @app.route("/tareas", methods=["GET"])
 def tareas():
+    """ Devuelve una respuesta visual para confirmar que el servidor está 'Live' """
     return """
     <!DOCTYPE html>
     <html lang="es">
@@ -122,10 +132,11 @@ def tareas():
     """, 200
 
 # ─────────────────────────────────────────────
-# Arranque
+# Arranque del Proceso
 # ─────────────────────────────────────────────
 
 if __name__ == "__main__":
-    init_db()
+    init_db() # Primero aseguramos que la base de datos esté lista
     print("Servidor iniciado en http://localhost:5000")
+    # Ponemos al servidor en estado de "escucha" para recibir peticiones
     app.run(debug=True)
