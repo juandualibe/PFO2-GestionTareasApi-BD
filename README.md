@@ -1,4 +1,4 @@
-# PFO 2: Sistema de Gestión de Tareas con API REST y SQLite
+# Sistema de Gestión de Tareas con API REST y SQLite
  
 Este proyecto implementa un sistema básico de autenticación y gestión de tareas utilizando una arquitectura Cliente-Servidor. Se utiliza Flask para el servidor API, SQLite para la persistencia de datos y una consola de comandos para el cliente.
  
